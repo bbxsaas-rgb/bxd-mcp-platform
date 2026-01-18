@@ -1,0 +1,8 @@
+{
+  "name": "BXD-mcp-Platform",
+  "description": "A comprehensive test automation platform built with Next.js, Tailwind CSS, and Supabase, featuring dashboard analytics, project management, and detailed test run visual timelines.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
