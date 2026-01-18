@@ -10,8 +10,17 @@ export default defineConfig(({ mode }) => {
         host: '0.0.0.0',
       },
       plugins: [react()],
-      optimizeDeps: {
-        include: ['@supabase/supabase-js']
+      ssr: {
+        noExternal: ['@supabase/supabase-js']
+      },
+      build: {
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              supabase: ['@supabase/supabase-js'],
+            },
+          },
+        },
       },
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
