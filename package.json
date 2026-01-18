@@ -10,7 +10,6 @@
     "mcp": "ts-node mcp-server.ts"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.25.2",
     "@supabase/supabase-js": "^2.90.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.562.0",
@@ -22,6 +21,7 @@
     "zod": "^4.3.5"
   },
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.2",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
     "ts-node": "^10.9.2",
