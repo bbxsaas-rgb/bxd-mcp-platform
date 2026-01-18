@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   FolderKanban, 
   PlayCircle, 
@@ -9,14 +8,60 @@ import {
   Zap
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-// Add cn import
 import { cn } from '../lib/utils';
 import StatsCard from '../components/dashboard/StatsCard';
 import SuccessRateChart from '../components/dashboard/SuccessRateChart';
 import StatusBadge from '../components/test-runs/StatusBadge';
 import Button from '../components/ui/Button';
+import { projectService } from '../lib/projectService';
+import { testRunService } from '../lib/testRunService';
+import { settingsService } from '../lib/settingsService';
+import { TestRun, Profile } from '../types/database';
 
 const Dashboard: React.FC = () => {
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [stats, setStats] = useState({
+    totalProjects: 0,
+    totalRuns: 0,
+    successRate: '0%'
+  });
+  const [recentRuns, setRecentRuns] = useState<TestRun[]>([]);
+  const [isStressing, setIsStressing] = useState(false);
+
+  const loadDashboardData = async () => {
+    const userProfile = settingsService.getProfile();
+    setProfile(userProfile);
+
+    const projects = await projectService.getProjects();
+    const runs = await testRunService.getRuns();
+    
+    const finishedRuns = runs.filter(r => r.status !== 'running');
+    const passedRuns = finishedRuns.filter(r => r.status === 'passed');
+    const rate = finishedRuns.length > 0 
+      ? `${Math.round((passedRuns.length / finishedRuns.length) * 100)}%` 
+      : '0%';
+
+    setStats({
+      totalProjects: projects.length,
+      totalRuns: runs.length,
+      successRate: rate
+    });
+
+    setRecentRuns(runs.slice(0, 5));
+    setIsStressing(runs.some(r => r.status === 'running'));
+  };
+
+  useEffect(() => {
+    loadDashboardData();
+    window.addEventListener('test-run-updated', loadDashboardData);
+    return () => window.removeEventListener('test-run-updated', loadDashboardData);
+  }, []);
+
+  const handleRunAll = async () => {
+    setIsStressing(true);
+    await testRunService.runAllSuites();
+  };
+
   const chartData = [
     { date: 'Seg', rate: 92 },
     { date: 'Ter', rate: 88 },
@@ -27,56 +72,59 @@ const Dashboard: React.FC = () => {
     { date: 'Dom', rate: 94 },
   ];
 
-  const recentRuns = [
-    { id: 'run-1', suite: 'Checkout Flow', status: 'passed', duration: '1m 24s', tests: '12/12', date: 'Há 2 horas' },
-    { id: 'run-2', suite: 'User Auth', status: 'failed', duration: '45s', tests: '8/10', date: 'Há 5 horas' },
-    { id: 'run-3', suite: 'Product Listing', status: 'passed', duration: '2m 10s', tests: '15/15', date: 'Há 1 dia' },
-    { id: 'run-4', suite: 'API Endpoints', status: 'passed', duration: '3m 05s', tests: '42/42', date: 'Há 1 dia' },
-    { id: 'run-5', suite: 'Admin Panel', status: 'running', duration: '...', tests: '5/8', date: 'Agora' },
-  ];
-
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Olá, Bem-vindo de volta!</h1>
-          <p className="text-slate-500 text-sm">Aqui está o que está acontecendo com seus testes hoje.</p>
+          <h1 className="text-2xl font-bold text-slate-900">Olá, {profile?.full_name?.split(' ')[0] || 'Bem-vindo'}!</h1>
+          <p className="text-slate-500 text-sm">
+            {profile?.role === 'client' 
+              ? 'Aqui está o status atual dos seus projetos.' 
+              : 'Aqui está o que está acontecendo com seus testes hoje.'}
+          </p>
         </div>
-        <div className="flex gap-3">
-          <Link to="/projects/new">
-            <Button variant="outline" size="sm">
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Projeto
+        {profile?.role !== 'client' && (
+          <div className="flex gap-3">
+            <Link to="/projects/new">
+              <Button variant="outline" size="sm">
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Projeto
+              </Button>
+            </Link>
+            <Button 
+              size="sm" 
+              onClick={handleRunAll}
+              disabled={isStressing}
+              className={cn(isStressing && "animate-pulse bg-amber-500 hover:bg-amber-600")}
+            >
+              <PlayCircle className={cn("w-4 h-4 mr-2", isStressing && "animate-spin")} />
+              {isStressing ? "Estressando..." : "Executar Todos"}
             </Button>
-          </Link>
-          <Button size="sm">
-            <PlayCircle className="w-4 h-4 mr-2" />
-            Executar Todos
-          </Button>
-        </div>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatsCard 
           title="Total de Projetos" 
-          value={8} 
+          value={stats.totalProjects} 
           subtitle="Projetos ativos" 
           icon={FolderKanban} 
           color="blue"
-          trend={{ value: 12, direction: 'up' }}
+          trend={{ value: 0, direction: 'up' }}
         />
         <StatsCard 
-          title="Execuções (30 dias)" 
-          value={142} 
-          subtitle="Testes rodados este mês" 
+          title="Execuções Totais" 
+          value={stats.totalRuns} 
+          subtitle="Testes rodados na plataforma" 
           icon={PlayCircle} 
           color="purple"
-          trend={{ value: 5, direction: 'down' }}
+          trend={{ value: 0, direction: 'up' }}
         />
         <StatsCard 
           title="Taxa de Sucesso" 
-          value="94.2%" 
-          subtitle="Média das últimas 100 runs" 
+          value={stats.successRate} 
+          subtitle="Média histórica" 
           icon={CheckCircle2} 
           color="green"
         />
@@ -115,21 +163,36 @@ const Dashboard: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {recentRuns.map((run) => (
-                    <tr key={run.id} className="hover:bg-slate-50 transition-colors cursor-pointer">
-                      <td className="px-6 py-4 font-medium text-slate-900 text-sm">{run.suite}</td>
+                    <tr 
+                      key={run.id} 
+                      className="hover:bg-slate-50 transition-colors cursor-pointer"
+                      onClick={() => window.location.hash = `#/test-runs/${run.id}`}
+                    >
+                      <td className="px-6 py-4 font-medium text-slate-900 text-sm">{run.suite_name}</td>
                       <td className="px-6 py-4">
                         <StatusBadge status={run.status as any} size="sm" />
                       </td>
-                      <td className="px-6 py-4 text-xs text-slate-500">{run.duration}</td>
+                      <td className="px-6 py-4 text-xs text-slate-500">
+                        {run.status === 'running' ? '...' : `${Math.floor(run.duration || 0)}s`}
+                      </td>
                       <td className="px-6 py-4 text-xs font-medium">
                         <span className={run.status === 'failed' ? 'text-red-500' : 'text-emerald-500'}>
-                          {run.tests.split('/')[0]}
+                          {run.passed_count}
                         </span>
-                        <span className="text-slate-400">/{run.tests.split('/')[1]}</span>
+                        <span className="text-slate-400">/{run.total_count}</span>
                       </td>
-                      <td className="px-6 py-4 text-xs text-slate-400">{run.date}</td>
+                      <td className="px-6 py-4 text-xs text-slate-400">
+                        {new Date(run.started_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                      </td>
                     </tr>
                   ))}
+                  {recentRuns.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-slate-400 text-sm italic">
+                        Nenhuma execução recente.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

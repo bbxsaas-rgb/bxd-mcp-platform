@@ -8,14 +8,17 @@ import {
   Camera,
   Globe,
   Mail,
-  Smartphone
+  Smartphone,
+  Github,
+  Database,
+  Cloud
 } from 'lucide-react';
 import Button from '../components/ui/Button';
 import { settingsService, GeneralSettings } from '../lib/settingsService';
 import { Profile } from '../types/database';
 import { cn } from '../lib/utils';
 
-type Tab = 'profile' | 'notifications' | 'api';
+type Tab = 'profile' | 'notifications' | 'api' | 'integrations';
 
 const Settings: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>('profile');
@@ -73,6 +76,7 @@ const Settings: React.FC = () => {
             { id: 'profile', label: 'Perfil', icon: User },
             { id: 'notifications', label: 'Notificações', icon: Bell },
             { id: 'api', label: 'Chaves de API', icon: Key },
+            { id: 'integrations', label: 'Integrações', icon: Cloud },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -143,6 +147,19 @@ const Settings: React.FC = () => {
                       onChange={e => setProfile({...profile, email: e.target.value})}
                       className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Papel de Acesso (Simulação SaaS)</label>
+                    <select 
+                      value={profile.role}
+                      onChange={e => setProfile({...profile, role: e.target.value as any})}
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white"
+                    >
+                      <option value="admin">Administrador (Total)</option>
+                      <option value="developer">Desenvolvedor (Projetos & Testes)</option>
+                      <option value="client">Cliente (Apenas Visualização)</option>
+                    </select>
+                    <p className="text-[10px] text-slate-500 mt-1">Isso mudará o que você pode ver e fazer na plataforma.</p>
                   </div>
                 </div>
               </div>
@@ -268,6 +285,90 @@ const Settings: React.FC = () => {
                 <Button type="submit" disabled={isSaving}>
                   <Save className="w-4 h-4 mr-2" />
                   {isSaving ? 'Salvando...' : 'Salvar Chaves'}
+                </Button>
+              </div>
+            </form>
+          )}
+
+          {activeTab === 'integrations' && (
+            <form onSubmit={handleSaveSettings} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-slate-100">
+                <h3 className="text-lg font-bold text-slate-900">Integrações de Infraestrutura</h3>
+                <p className="text-sm text-slate-500">Conecte sua conta ao Supabase, GitHub e Vercel.</p>
+              </div>
+              <div className="p-6 space-y-8">
+                {/* Supabase */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                    <Database className="w-5 h-5 text-emerald-600" />
+                    <h4 className="font-bold text-slate-900">Supabase</h4>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Project URL</label>
+                      <input 
+                        type="text" 
+                        placeholder="https://xyz.supabase.co"
+                        value={settings.integrations.supabase_url}
+                        onChange={e => setSettings({...settings, integrations: {...settings.integrations, supabase_url: e.target.value}})}
+                        className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Anon Key</label>
+                      <input 
+                        type="password" 
+                        placeholder="eyJhbG..."
+                        value={settings.integrations.supabase_anon_key}
+                        onChange={e => setSettings({...settings, integrations: {...settings.integrations, supabase_anon_key: e.target.value}})}
+                        className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* GitHub */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                    <Github className="w-5 h-5 text-slate-900" />
+                    <h4 className="font-bold text-slate-900">GitHub</h4>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Personal Access Token</label>
+                    <input 
+                      type="password" 
+                      placeholder="ghp_..."
+                      value={settings.integrations.github_token}
+                      onChange={e => setSettings({...settings, integrations: {...settings.integrations, github_token: e.target.value}})}
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono text-sm"
+                    />
+                    <p className="text-[10px] text-slate-500 mt-1">Necessário para automação de commits e pull requests.</p>
+                  </div>
+                </div>
+
+                {/* Vercel */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                    <Cloud className="w-5 h-5 text-blue-600" />
+                    <h4 className="font-bold text-slate-900">Vercel</h4>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Vercel API Token</label>
+                    <input 
+                      type="password" 
+                      placeholder="v_..."
+                      value={settings.integrations.vercel_token}
+                      onChange={e => setSettings({...settings, integrations: {...settings.integrations, vercel_token: e.target.value}})}
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono text-sm"
+                    />
+                    <p className="text-[10px] text-slate-500 mt-1">Necessário para gerenciar deploys e ambientes.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end">
+                <Button type="submit" disabled={isSaving}>
+                  <Save className="w-4 h-4 mr-2" />
+                  {isSaving ? 'Salvando...' : 'Salvar Integrações'}
                 </Button>
               </div>
             </form>

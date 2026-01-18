@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { 
   ArrowLeft, 
@@ -9,60 +8,67 @@ import {
   User, 
   Target,
   FileText,
-  AlertCircle
+  AlertCircle,
+  Zap
 } from 'lucide-react';
-// Add cn import
-import { cn } from '../lib/utils';
+import { cn, formatDuration, formatTimeAgo, getSuccessRate } from '../lib/utils';
 import StatusBadge from '../components/test-runs/StatusBadge';
 import Button from '../components/ui/Button';
 import RunTimeline from '../components/test-runs/RunTimeline';
-import { TestResult } from '../types/database';
+import { testRunService } from '../lib/testRunService';
+import { TestRun, TestResult } from '../types/database';
 
 const RunDetails: React.FC = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
+  const [run, setRun] = useState<TestRun | null>(null);
+  const [results, setResults] = useState<TestResult[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for results
-  const mockResults: TestResult[] = [
-    {
-      id: 'res-1',
-      test_run_id: 'run-1',
-      test_name: 'Login com credenciais válidas',
-      status: 'passed',
-      duration: 12,
-      browser: 'chromium',
-      created_at: new Date().toISOString()
-    },
-    {
-      id: 'res-2',
-      test_run_id: 'run-1',
-      test_name: 'Mensagem de erro para senha incorreta',
-      status: 'failed',
-      duration: 5,
-      error_message: "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 'Credenciais inválidas'\nReceived: 'Login falhou'",
-      stack_trace: "at Context.<anonymous> (tests/auth.spec.ts:15:24)\nat processTicksAndRejections (node:internal/process/task_queues:95:5)",
-      screenshot_url: "https://picsum.photos/800/600?random=1",
-      browser: 'chromium',
-      created_at: new Date().toISOString()
-    },
-    {
-      id: 'res-3',
-      test_run_id: 'run-1',
-      test_name: 'Recuperação de senha - Fluxo completo',
-      status: 'passed',
-      duration: 18,
-      browser: 'webkit',
-      created_at: new Date().toISOString()
-    },
-    {
-      id: 'res-4',
-      test_run_id: 'run-1',
-      test_name: 'Validação de campos obrigatórios',
-      status: 'skipped',
-      duration: 0,
-      browser: 'chromium',
-      created_at: new Date().toISOString()
-    }
-  ];
+  useEffect(() => {
+    const loadData = async () => {
+      if (!id) return;
+      const runData = await testRunService.getRunById(id);
+      const resultsData = await testRunService.getResultsByRunId(id);
+      
+      if (runData) {
+        setRun(runData);
+        setResults(resultsData);
+      }
+      setLoading(false);
+    };
+
+    loadData();
+
+    const handleUpdate = (e: any) => {
+      if (e.detail?.runId === id) loadData();
+    };
+
+    window.addEventListener('test-run-updated', handleUpdate);
+    return () => window.removeEventListener('test-run-updated', handleUpdate);
+  }, [id]);
+
+  if (loading) {
+    return <div className="p-8 animate-pulse space-y-8">
+      <div className="h-10 bg-slate-100 w-1/4 rounded"></div>
+      <div className="grid grid-cols-4 gap-6">
+        {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-slate-100 rounded-xl"></div>)}
+      </div>
+      <div className="h-96 bg-slate-100 rounded-xl"></div>
+    </div>;
+  }
+
+  if (!run) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 bg-white rounded-xl border border-slate-200">
+        <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
+        <h2 className="text-xl font-bold text-slate-900">Execução não encontrada</h2>
+        <p className="text-slate-500 mb-6">O ID da execução fornecido é inválido ou não existe mais.</p>
+        <Link to="/test-runs">
+          <Button>Voltar para Histórico</Button>
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -76,10 +82,12 @@ const RunDetails: React.FC = () => {
           </Link>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-xl font-bold text-slate-900">Run #{id?.substring(0, 8)}</h1>
-              <StatusBadge status="failed" />
+              <h1 className="text-xl font-bold text-slate-900">Run #{run.id.substring(0, 8)}</h1>
+              <StatusBadge status={run.status} />
             </div>
-            <p className="text-xs text-slate-500 mt-1">Executado na suite <Link to="#" className="text-blue-600 hover:underline">User Authentication Flow</Link></p>
+            <p className="text-xs text-slate-500 mt-1">
+              Executado na suite <Link to="/test-suites" className="text-blue-600 hover:underline">{run.suite_name}</Link>
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -87,12 +95,40 @@ const RunDetails: React.FC = () => {
             <Share2 className="w-4 h-4 mr-2" />
             Compartilhar
           </Button>
-          <Button size="sm">
+          <Button 
+            size="sm" 
+            onClick={() => testRunService.createRun(run.test_suite_id, run.suite_name || 'Suite')}
+            disabled={run.status === 'running'}
+          >
             <RotateCcw className="w-4 h-4 mr-2" />
             Re-executar
           </Button>
         </div>
       </div>
+
+      {/* AI Diagnosis - Only show if it exists */}
+      {run.diagnosis && (
+        <div className="bg-blue-600 rounded-xl p-6 text-white relative overflow-hidden shadow-lg animate-in slide-in-from-top-4 duration-700">
+          <Zap className="absolute -right-4 -bottom-4 w-32 h-32 text-blue-500 opacity-20 rotate-12" />
+          <div className="flex items-center gap-2 mb-3">
+            <div className="bg-white/20 p-1.5 rounded-lg">
+              <Zap className="w-5 h-5 fill-current" />
+            </div>
+            <h3 className="text-lg font-bold">Diagnóstico Inteligente (Stress Test)</h3>
+          </div>
+          <p className="text-sm text-blue-50 leading-relaxed max-w-2xl">
+            {run.diagnosis}
+          </p>
+          <div className="mt-4 flex gap-3">
+            <Button size="sm" className="bg-white text-blue-600 hover:bg-blue-50 border-none">
+              Aplicar Correção Sugerida
+            </Button>
+            <Button size="sm" variant="ghost" className="text-white hover:bg-white/10">
+              Ver Logs Detalhados
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Summary Row */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -101,24 +137,26 @@ const RunDetails: React.FC = () => {
             <Clock className="w-4 h-4 text-slate-400" />
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Início & Duração</span>
           </div>
-          <p className="text-sm font-semibold text-slate-900">18 Jan, 2024 • 14:32</p>
-          <p className="text-xs text-slate-500 mt-1">Duração: 2m 45s</p>
+          <p className="text-sm font-semibold text-slate-900">
+            {new Date(run.started_at).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+          </p>
+          <p className="text-xs text-slate-500 mt-1">Duração: {run.status === 'running' ? 'Executando...' : formatDuration(run.duration)}</p>
         </div>
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
           <div className="flex items-center gap-3 mb-4">
             <User className="w-4 h-4 text-slate-400" />
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Gatilho</span>
           </div>
-          <p className="text-sm font-semibold text-slate-900">Manual</p>
-          <p className="text-xs text-slate-500 mt-1">Usuário: Admin BXD-MCP</p>
+          <p className="text-sm font-semibold text-slate-900">{run.triggered_by}</p>
+          <p className="text-xs text-slate-500 mt-1">Ambiente: Local Browser</p>
         </div>
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
           <div className="flex items-center gap-3 mb-4">
             <Target className="w-4 h-4 text-slate-400" />
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Ambiente</span>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Configuração</span>
           </div>
-          <p className="text-sm font-semibold text-slate-900">Production</p>
-          <p className="text-xs text-slate-500 mt-1 truncate">shop.mystore.com</p>
+          <p className="text-sm font-semibold text-slate-900">Multi-browser</p>
+          <p className="text-xs text-slate-500 mt-1 truncate">Chromium, Webkit</p>
         </div>
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
           <div className="flex items-center gap-3 mb-4">
@@ -126,7 +164,12 @@ const RunDetails: React.FC = () => {
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Métricas</span>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-xl font-bold text-emerald-600">75%</span>
+            <span className={cn(
+              "text-xl font-bold",
+              run.status === 'passed' ? "text-emerald-600" : run.status === 'failed' ? "text-red-600" : "text-slate-400"
+            )}>
+              {getSuccessRate(run.passed_count, run.total_count)}
+            </span>
             <span className="text-[10px] text-slate-400 font-medium">PASS RATE</span>
           </div>
         </div>
@@ -135,10 +178,10 @@ const RunDetails: React.FC = () => {
       {/* Test Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total', value: 4, color: 'text-slate-900', bg: 'bg-slate-100' },
-          { label: 'Sucesso', value: 2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-          { label: 'Falha', value: 1, color: 'text-red-600', bg: 'bg-red-50' },
-          { label: 'Ignorado', value: 1, color: 'text-slate-400', bg: 'bg-slate-50' },
+          { label: 'Total', value: run.total_count, color: 'text-slate-900', bg: 'bg-slate-100' },
+          { label: 'Sucesso', value: run.passed_count, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+          { label: 'Falha', value: run.failed_count, color: 'text-red-600', bg: 'bg-red-50' },
+          { label: 'Aguardando', value: run.status === 'running' ? '...' : 0, color: 'text-slate-400', bg: 'bg-slate-50' },
         ].map((stat, i) => (
           <div key={i} className={cn('p-4 rounded-xl border flex flex-col items-center justify-center', stat.bg, 'border-transparent')}>
             <span className={cn('text-2xl font-bold', stat.color)}>{stat.value}</span>
@@ -160,7 +203,14 @@ const RunDetails: React.FC = () => {
           </div>
         </div>
         <div className="p-6 max-w-4xl mx-auto">
-          <RunTimeline results={mockResults} />
+          {run.status === 'running' ? (
+            <div className="py-20 flex flex-col items-center justify-center text-center">
+              <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+              <p className="text-slate-500 font-medium">Executando testes e coletando evidências...</p>
+            </div>
+          ) : (
+            <RunTimeline results={results} />
+          )}
         </div>
       </div>
 

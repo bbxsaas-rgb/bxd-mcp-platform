@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { Layout, Globe, Github, Save, ArrowLeft } from 'lucide-react';
 import Button from '../components/ui/Button';
 import { projectService } from '../lib/projectService';
+import { useAuth } from '../contexts/AuthContext';
 
 const CreateProject: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -13,11 +15,13 @@ const CreateProject: React.FC = () => {
     base_url: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    projectService.addProject({
+    if (!user) return;
+
+    await projectService.addProject({
       ...formData,
-      user_id: 'current-user'
+      user_id: user.id
     });
     navigate('/projects');
   };

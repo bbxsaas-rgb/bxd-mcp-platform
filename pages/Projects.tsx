@@ -12,18 +12,20 @@ import { Link } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import StatusBadge from '../components/test-runs/StatusBadge';
 import { projectService } from '../lib/projectService';
-import { Project } from '../types/database';
+import { settingsService } from '../lib/settingsService';
+import { Project, Profile } from '../types/database';
 import { formatTimeAgo } from '../lib/utils';
 
 const Projects: React.FC = () => {
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulando um pequeno delay para carregar
-    const loadProjects = () => {
-      const data = projectService.getProjects();
+    const loadProjects = async () => {
+      setProfile(settingsService.getProfile());
+      const data = await projectService.getProjects();
       setProjects(data);
       setLoading(false);
     };
@@ -54,12 +56,14 @@ const Projects: React.FC = () => {
               className="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-64 transition-all"
             />
           </div>
-          <Link to="/projects/new">
-            <Button size="sm">
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Projeto
-            </Button>
-          </Link>
+          {profile?.role === 'admin' && (
+            <Link to="/projects/new">
+              <Button size="sm">
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Projeto
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -119,27 +123,25 @@ const Projects: React.FC = () => {
           </Link>
         ))}
         
-        {loading && [1, 2, 3].map((i) => (
-          <div key={i} className="bg-white rounded-xl border border-slate-200 p-6 h-[300px] animate-pulse">
-            <div className="w-10 h-10 bg-slate-100 rounded-lg mb-4"></div>
-            <div className="h-6 bg-slate-100 rounded w-2/3 mb-2"></div>
-            <div className="h-4 bg-slate-100 rounded w-full mb-1"></div>
-            <div className="h-4 bg-slate-100 rounded w-full mb-6"></div>
-            <div className="h-10 bg-slate-50 rounded w-full mt-auto"></div>
+        {loading && (
+          <div className="col-span-full py-20 flex justify-center">
+            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
           </div>
-        ))}
+        )}
 
-        {/* Placeholder for "Add Project" as a card */}
-        <Link 
-          to="/projects/new"
-          className="border-2 border-dashed border-slate-200 rounded-xl p-6 flex flex-col items-center justify-center text-slate-400 hover:border-blue-300 hover:bg-blue-50/30 hover:text-blue-500 transition-all min-h-[300px]"
-        >
-          <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mb-4 group-hover:bg-blue-100 transition-colors">
-            <Plus className="w-6 h-6" />
-          </div>
-          <p className="font-semibold">Criar Novo Projeto</p>
-          <p className="text-xs mt-1">Configure sua stack de testes em segundos.</p>
-        </Link>
+        {/* Placeholder for "Add Project" as a card - Admin Only */}
+        {!loading && profile?.role === 'admin' && (
+          <Link 
+            to="/projects/new"
+            className="border-2 border-dashed border-slate-200 rounded-xl p-6 flex flex-col items-center justify-center text-slate-400 hover:border-blue-300 hover:bg-blue-50/30 hover:text-blue-500 transition-all min-h-[300px]"
+          >
+            <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mb-4 group-hover:bg-blue-100 transition-colors">
+              <Plus className="w-6 h-6" />
+            </div>
+            <p className="font-semibold">Criar Novo Projeto</p>
+            <p className="text-xs mt-1">Configure sua stack de testes em segundos.</p>
+          </Link>
+        )}
       </div>
     </div>
   );

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -9,12 +8,15 @@ import {
   Settings, 
   ChevronRight, 
   LogOut,
-  Zap
+  Zap,
+  HelpCircle
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
+  const { signOut } = useAuth();
 
   const navItems = [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
@@ -22,6 +24,7 @@ const Sidebar: React.FC = () => {
     { label: 'Test Suites', icon: FileCheck, path: '/test-suites' },
     { label: 'Test Runs', icon: PlayCircle, path: '/test-runs' },
     { label: 'Configurações', icon: Settings, path: '/settings' },
+    { label: 'Ajuda', icon: HelpCircle, path: '/help' },
   ];
 
   return (
@@ -72,7 +75,10 @@ const Sidebar: React.FC = () => {
           </div>
         </div>
 
-        <button className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-red-50 hover:text-red-600 w-full transition-colors">
+        <button 
+          onClick={() => signOut()}
+          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-red-50 hover:text-red-600 w-full transition-colors"
+        >
           <LogOut className="w-4.5 h-4.5" />
           Sair
         </button>

@@ -1,10 +1,12 @@
 
 export type Status = 'pending' | 'running' | 'passed' | 'failed' | 'cancelled';
+export type UserRole = 'admin' | 'developer' | 'client';
 
 export interface Profile {
   id: string;
   email: string;
   full_name: string;
+  role: UserRole;
   avatar_url?: string;
   created_at: string;
 }
@@ -42,6 +44,7 @@ export interface TestRun {
   triggered_by: string;
   created_at: string;
   suite_name?: string; // Join result
+  diagnosis?: string; // AI diagnosis
 }
 
 export interface TestResult {
