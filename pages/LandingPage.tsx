@@ -11,7 +11,8 @@ import {
   Globe, 
   Code2,
   Lock,
-  Users
+  Users,
+  Github
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Button from '../components/ui/Button';
@@ -204,10 +205,10 @@ const LandingPage: React.FC = () => {
             </ul>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-slate-50 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-slate-50 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs text-slate-400">© 2026 BXD-MCP Platform. Todos os direitos reservados.</p>
           <div className="flex gap-6 opacity-40">
-            <GithubIcon className="w-5 h-5" />
+            <Github className="w-5 h-5" />
             <Globe className="w-5 h-5" />
           </div>
         </div>

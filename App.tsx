@@ -4,6 +4,7 @@ import Sidebar from './components/layout/Sidebar';
 import Header from './components/layout/Header';
 import Dashboard from './pages/Dashboard';
 import Projects from './pages/Projects';
+import ProjectDetails from './pages/ProjectDetails';
 import CreateProject from './pages/CreateProject';
 import TestSuites from './pages/TestSuites';
 import CreateTestSuite from './pages/CreateTestSuite';
@@ -12,6 +13,8 @@ import Settings from './pages/Settings';
 import Help from './pages/Help';
 import LandingPage from './pages/LandingPage';
 import Auth from './pages/Auth';
+import Team from './pages/Team';
+import Billing from './pages/Billing';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Layout Wrapper
@@ -70,6 +73,14 @@ const App: React.FC = () => {
             } 
           />
           <Route 
+            path="/projects/:id" 
+            element={
+              <DashboardLayout>
+                <ProjectDetails />
+              </DashboardLayout>
+            } 
+          />
+          <Route 
             path="/projects/new" 
             element={
               <DashboardLayout>
@@ -116,6 +127,22 @@ const App: React.FC = () => {
             element={
               <DashboardLayout>
                 <Settings />
+              </DashboardLayout>
+            } 
+          />
+          <Route 
+            path="/team" 
+            element={
+              <DashboardLayout>
+                <Team />
+              </DashboardLayout>
+            } 
+          />
+          <Route 
+            path="/billing" 
+            element={
+              <DashboardLayout>
+                <Billing />
               </DashboardLayout>
             } 
           />

@@ -7,7 +7,7 @@ import {
 import { z } from "zod";
 import { projectService } from "./lib/projectService.js";
 import { testSuiteService } from "./lib/testSuiteService.js";
-import { testRunService } from "./testRunService.js";
+import { testRunService } from "./lib/testRunService.js";
 
 /**
  * Servidor MCP para o BXD-MCP Platform
@@ -97,7 +97,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           suiteName: z.string() 
         }).parse(args);
         
-        const run = testRunService.createRun(suiteId, suiteName, "IA / MCP");
+        const run = await testRunService.createRun(suiteId, suiteName, "IA / MCP");
         return {
           content: [{ 
             type: "text", 
