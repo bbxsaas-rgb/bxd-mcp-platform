@@ -12,6 +12,7 @@ const Auth: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     email: '',
@@ -34,6 +35,7 @@ const Auth: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     setLoading(true);
 
     try {
@@ -55,7 +57,7 @@ const Auth: React.FC = () => {
         });
         if (signUpError) throw signUpError;
         
-        setError('Cadastro realizado com sucesso! Por favor, verifique sua caixa de entrada para confirmar o seu e-mail.');
+        setSuccess('Cadastro realizado com sucesso! Por favor, verifique sua caixa de entrada para confirmar o seu e-mail.');
       }
     } catch (err: any) {
       setError(err.message || 'Ocorreu um erro na autenticação.');
@@ -113,6 +115,15 @@ const Auth: React.FC = () => {
             <div className="p-4 rounded-xl bg-red-50 border border-red-100 flex gap-3 text-red-700 text-sm animate-in shake-1">
               <AlertCircle className="w-5 h-5 shrink-0" />
               <p>{error}</p>
+            </div>
+          )}
+
+          {success && (
+            <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100 flex gap-3 text-emerald-700 text-sm animate-in fade-in zoom-in duration-300">
+              <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center shrink-0">
+                <Zap className="w-3 h-3 text-white fill-current" />
+              </div>
+              <p>{success}</p>
             </div>
           )}
 
