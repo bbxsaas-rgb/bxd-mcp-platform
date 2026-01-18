@@ -17,7 +17,7 @@ const Help: React.FC = () => {
     {
       title: 'Primeiros Passos',
       icon: Rocket,
-      content: 'Para começar, você deve configurar suas integrações básicas na aba de Configurações. Insira sua URL e Anon Key do Supabase para ativar a persistência na nuvem.',
+      content: 'Para começar, você deve configurar suas integrações básicas na aba de Configurações. Insira as credenciais de banco de dados para ativar a persistência na nuvem.',
       links: ['Configurando Integrações', 'Primeiro Projeto']
     },
     {

@@ -44,7 +44,7 @@ const Auth: React.FC = () => {
         });
         if (error) throw error;
       } else {
-        const { error: signUpError, data } = await supabase!.auth.signUp({
+        const { error: signUpError } = await supabase!.auth.signUp({
           email: formData.email,
           password: formData.password,
           options: {
@@ -55,17 +55,7 @@ const Auth: React.FC = () => {
         });
         if (signUpError) throw signUpError;
         
-        if (data.user) {
-          // Criar perfil manualmente se o trigger do Supabase não estiver configurado
-          await supabase!.from('profiles').upsert({
-            id: data.user.id,
-            email: formData.email,
-            full_name: formData.fullName,
-            role: 'admin' // Primeiro usuário como admin por padrão
-          });
-        }
-        
-        setError('Cadastro realizado! Verifique seu e-mail para confirmar (se ativado no Supabase).');
+        setError('Cadastro realizado com sucesso! Por favor, verifique sua caixa de entrada para confirmar o seu e-mail.');
       }
     } catch (err: any) {
       setError(err.message || 'Ocorreu um erro na autenticação.');

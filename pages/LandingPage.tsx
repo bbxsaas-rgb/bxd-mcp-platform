@@ -126,7 +126,7 @@ const LandingPage: React.FC = () => {
             {[
               { icon: Cpu, title: 'IA Auto-Healing', desc: 'Nossa IA analisa falhas e sugere correções no código instantaneamente.' },
               { icon: Terminal, title: 'MCP Protocol', desc: 'Integração nativa com Cursor e VS Code para rodar testes sem sair do editor.' },
-              { icon: Globe, title: 'Cloud Persistence', desc: 'Sincronização em tempo real com Supabase para gerenciar dados em qualquer lugar.' },
+              { icon: Globe, title: 'Persistência na Nuvem', desc: 'Sincronização em tempo real para gerenciar seus dados de qualquer lugar com segurança.' },
               { icon: Lock, title: 'Controle de Acesso', desc: 'Permissões customizadas para Admins, Desenvolvedores e seus Clientes.' },
               { icon: BarChart3, title: 'Stress Analytics', desc: 'Descubra gargalos de performance simulando carga pesada em seus endpoints.' },
               { icon: Users, title: 'Multi-Workspace', desc: 'Gerencie dezenas de projetos SaaS separadamente em uma única conta.' }
