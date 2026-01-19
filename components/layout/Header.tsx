@@ -1,8 +1,19 @@
-
 import React from 'react';
 import { Bell, Search, User, ChevronDown, Command } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Header: React.FC = () => {
+  const { profile } = useAuth();
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
   return (
     <header className="h-16 border-b border-slate-200 bg-white px-8 flex items-center justify-between sticky top-0 z-40">
       <div className="flex items-center flex-1">
@@ -32,11 +43,15 @@ const Header: React.FC = () => {
 
         <div className="flex items-center gap-3 cursor-pointer group">
           <div className="text-right hidden md:block">
-            <p className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">Leonardo Santos</p>
-            <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Desenvolvedor Sênior</p>
+            <p className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+              {profile?.full_name || 'Usuário'}
+            </p>
+            <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">
+              {profile?.role === 'admin' ? 'Administrador' : profile?.role === 'developer' ? 'Desenvolvedor' : 'Cliente'}
+            </p>
           </div>
           <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 border-2 border-white shadow-sm flex items-center justify-center text-white font-bold text-sm">
-            LS
+            {profile?.full_name ? getInitials(profile.full_name) : 'US'}
           </div>
           <ChevronDown className="w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
         </div>

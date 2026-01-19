@@ -21,7 +21,7 @@ const Sidebar: React.FC = () => {
   const { signOut, profile } = useAuth();
 
   const navItems = [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     { label: 'Projetos', icon: FolderKanban, path: '/projects' },
     { label: 'Test Suites', icon: FileCheck, path: '/test-suites' },
     { label: 'Test Runs', icon: PlayCircle, path: '/test-runs' },

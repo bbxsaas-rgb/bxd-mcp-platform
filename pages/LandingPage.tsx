@@ -35,10 +35,12 @@ const LandingPage: React.FC = () => {
             <a href="#pricing" className="hover:text-blue-600 transition-colors">Preços</a>
           </div>
           <div className="flex items-center gap-4">
-            <Link to="/">
+            <Link to="/dashboard">
               <Button variant="outline" size="sm">Dashboard</Button>
             </Link>
-            <Button size="sm">Começar Agora</Button>
+            <Link to="/auth">
+              <Button size="sm">Começar Agora</Button>
+            </Link>
           </div>
         </div>
       </nav>
@@ -61,10 +63,12 @@ const LandingPage: React.FC = () => {
               Automação inteligente, diagnóstico em tempo real e integração nativa com seu editor de código via protocolo MCP. Valide seus projetos antes do deploy.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="h-14 px-8 text-lg rounded-2xl shadow-xl shadow-blue-200">
-                Criar seu workspace gratuito
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
+              <Link to="/auth">
+                <Button size="lg" className="h-14 px-8 text-lg rounded-2xl shadow-xl shadow-blue-200">
+                  Criar seu workspace gratuito
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
               <div className="flex items-center gap-4 px-4">
                 <div className="flex -space-x-2">
                   {[1, 2, 3].map(i => (
@@ -155,9 +159,11 @@ const LandingPage: React.FC = () => {
               Junte-se à nova era de automação inteligente e garanta que seu SaaS esteja sempre online e performático.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Button size="lg" className="h-14 px-10 text-lg rounded-2xl bg-white text-blue-600 hover:bg-blue-50 border-none">
-                Get Started for Free
-              </Button>
+              <Link to="/auth">
+                <Button size="lg" className="h-14 px-10 text-lg rounded-2xl bg-white text-blue-600 hover:bg-blue-50 border-none">
+                  Get Started for Free
+                </Button>
+              </Link>
               <Button size="lg" variant="outline" className="h-14 px-10 text-lg rounded-2xl border-white/20 text-white hover:bg-white/10">
                 Book a Demo
               </Button>

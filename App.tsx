@@ -52,12 +52,12 @@ const App: React.FC = () => {
       <Router>
         <Routes>
           {/* Public Routes */}
+          <Route path="/" element={<LandingPage />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/welcome" element={<LandingPage />} />
           
           {/* Main Dashboard Routes (Protected) */}
           <Route 
-            path="/" 
+            path="/dashboard" 
             element={
               <DashboardLayout>
                 <Dashboard />
