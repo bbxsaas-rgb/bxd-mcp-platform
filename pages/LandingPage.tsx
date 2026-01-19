@@ -106,14 +106,35 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Social Proof */}
-      <section className="py-10 border-y border-slate-100 bg-slate-50/50">
-        <div className="max-w-7xl mx-auto px-6 flex flex-wrap justify-center gap-12 opacity-40 grayscale contrast-125">
-          <span className="text-2xl font-black italic">MICROSOFT</span>
-          <span className="text-2xl font-black italic">STRIPE</span>
-          <span className="text-2xl font-black italic">VERCEL</span>
-          <span className="text-2xl font-black italic">SUPABASE</span>
-          <span className="text-2xl font-black italic">GITHUB</span>
+      {/* Integrations Grid */}
+      <section className="bg-slate-950 py-24 px-6 border-y border-white/5">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 border border-white/10 rounded-2xl overflow-hidden">
+            {[
+              { name: 'Cursor', logo: 'https://mintlify.s3-us-west-1.amazonaws.com/cursor/logo/dark.svg' },
+              { name: 'TRAE', logo: 'https://www.trae.ai/logo.svg' },
+              { name: 'Claude', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Claude_AI_logo.svg/1024px-Claude_AI_logo.svg.png' },
+              { name: 'Windsurf', logo: 'https://codeium.com/windsurf/logo.svg' },
+              { name: 'Visual Studio Code', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Visual_Studio_Code_1.35_icon.svg/512px-Visual_Studio_Code_1.35_icon.svg.png' },
+              { name: 'And More...', logo: null }
+            ].map((item, idx) => (
+              <div 
+                key={idx} 
+                className="flex items-center justify-center p-12 border-white/10 border-b last:border-b-0 md:odd:border-r hover:bg-white/[0.02] transition-colors group"
+              >
+                <div className="flex items-center gap-3 grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500">
+                  {item.logo ? (
+                    <>
+                      <img src={item.logo} alt={item.name} className="h-8 w-auto object-contain" />
+                      <span className="text-2xl font-bold text-white tracking-tight">{item.name}</span>
+                    </>
+                  ) : (
+                    <span className="text-xl font-bold text-slate-400 tracking-tight">{item.name}</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
